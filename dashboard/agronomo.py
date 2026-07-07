@@ -34,23 +34,7 @@ st.markdown("""
     .floating-btn:hover { transform: translateX(-5px); box-shadow: 0 6px 25px rgba(230, 81, 0, 0.4); }
     .floating-btn-secondary { background: linear-gradient(145deg, #2E7D32, #1B5E20); box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3); }
     .floating-btn-secondary:hover { box-shadow: 0 6px 25px rgba(46, 125, 50, 0.4); }
-    .lacuna-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.2rem;
-        border-left: 5px solid #E65100;
-        margin-bottom: 0.8rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .lacuna-card-alta { border-left-color: #D32F2F; }
-    .lacuna-card-media { border-left-color: #FF9800; }
-    .lacuna-card-baixa { border-left-color: #4CAF50; }
-    .recomendacao-box {
-        background: linear-gradient(145deg, #E8F5E9, #ffffff);
-        border-radius: 12px;
-        padding: 1.2rem;
-        border: 2px solid #2E7D32;
-    }
+    
     .section-card {
         background: white;
         border-radius: 12px;
@@ -66,62 +50,51 @@ st.markdown("""
         padding-bottom: 0.5rem;
         border-bottom: 2px solid #FFF3E0;
     }
-    .agri-badge {
+    .request-box {
+        background: #FFF3E0;
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 4px solid #E65100;
+        margin: 0.5rem 0;
+    }
+    .request-box-responded {
+        background: #E8F5E9;
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 4px solid #4CAF50;
+        margin: 0.5rem 0;
+    }
+    .badge {
         display: inline-block;
         padding: 0.2rem 0.8rem;
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 600;
     }
-    .agri-badge-alta { background: #F44336; color: white; }
-    .agri-badge-media { background: #FF9800; color: white; }
-    .agri-badge-baixa { background: #4CAF50; color: white; }
+    .badge-pendente { background: #FF9800; color: white; }
+    .badge-respondido { background: #4CAF50; color: white; }
 </style>
 """, unsafe_allow_html=True)
 
 def render_agronomo():
     st.markdown('<h1 style="font-size:2rem;font-weight:700;color:#E65100;">👨🏾‍🌾 Agrónomo - Planeamento Agrícola</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="font-size:1rem;color:#555;margin-bottom:1.5rem;">Analise lacunas nutricionais, registe dados agroalimentares e climáticos, e planeie intervenções</p>', unsafe_allow_html=True)
+    st.markdown('<p style="font-size:1rem;color:#555;margin-bottom:1.5rem;">Analise lacunas nutricionais, receba pedidos do médico e planeie intervenções agrícolas</p>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="floating-actions">
-        <button class="floating-btn" onclick="document.getElementById('ver_lacunas').click()">🥗 Ver Lacunas</button>
-        <button class="floating-btn floating-btn-secondary" onclick="document.getElementById('recomendacoes').click()">🌱 Recomendações</button>
+        <button class="floating-btn" onclick="document.getElementById('pedidos').click()">📩 Pedidos Médicos</button>
+        <button class="floating-btn floating-btn-secondary" onclick="document.getElementById('lacunas').click()">🥗 Ver Lacunas</button>
     </div>
     """, unsafe_allow_html=True)
     
     rec_engine = RecommendationEngine()
     food_security_model = FoodSecurityModel()
     
-    # Inicializar dados agrícolas
-    if 'agri_data' not in st.session_state:
-        st.session_state.agri_data = {
-            'producao_agricola': '',
-            'diversidade_agricola': 0,
-            'producao_leguminosas': 0,
-            'producao_hortalicas': 0,
-            'producao_graos': 0,
-            'producao_tubers': 0,
-            'producao_frutas': 0,
-            'criacao_animal': '',
-            'ovos_semana': 0,
-            'leite_dia': 0,
-            'disponibilidade_alimentos': '',
-            'preco_feijao': 0,
-            'preco_milho': 0,
-            'preco_arroz': 0,
-            'preco_oleo': 0,
-            'sazonalidade': '',
-            'meses_escassez': '',
-            'precipitacao': 0,
-            'temperatura': 0,
-            'seca_frequencia': 0,
-            'cheias_frequencia': 0,
-            'epoca_agricola': 0,
-            'data_registo': datetime.now().strftime('%d/%m/%Y %H:%M')
-        }
+    # Inicializar pedidos agrícolas se não existir
+    if 'agriculture_requests' not in st.session_state:
+        st.session_state.agriculture_requests = []
     
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Dashboard", "🌾 Dados Agroalimentares", "🥗 Verificação de Lacunas", "🌱 Recomendações"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Dashboard", "📩 Pedidos do Médico", "🥗 Lacunas Nutricionais", "🌱 Recomendações"])
     
     with tab1:
         st.header("📊 Perfil da Comunidade")
@@ -151,203 +124,190 @@ def render_agronomo():
                 st.plotly_chart(fig2, use_container_width=True)
         else:
             st.info("📋 Aguardando dados de triagem do enfermeiro")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Prevalência Anemia", "40%", "⚠️ Elevada")
+            with col2:
+                st.metric("Insegurança Alimentar", "35%", "⚠️ Crítica")
+            with col3:
+                st.metric("Diversidade Agrícola", "4 culturas", "Ideal: 5+")
     
     with tab2:
-        st.markdown('<div id="dados_agro"></div>', unsafe_allow_html=True)
-        st.header("🌾 Registo de Dados Agroalimentares e Climáticos")
-        st.markdown("Registe informações sobre produção, mercado e clima da comunidade")
+        st.markdown('<div id="pedidos"></div>', unsafe_allow_html=True)
+        st.header("📩 Pedidos do Médico")
+        st.markdown("Responda aos pedidos de informação sobre produção agrícola familiar")
         
-        with st.form("agri_form"):
-            # ============ PRODUÇÃO AGRÍCOLA ============
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">🌱 Produção Agrícola</div>', unsafe_allow_html=True)
+        if st.session_state.agriculture_requests:
+            df_pedidos = pd.DataFrame(st.session_state.agriculture_requests)
             
-            col_prod1, col_prod2 = st.columns(2)
-            with col_prod1:
-                producao_agricola = st.text_area("Culturas produzidas (descreva)", placeholder="Ex: Milho, Feijão, Mandioca, Amendoim")
-                diversidade_agricola = st.number_input("Número de culturas diferentes", min_value=0, max_value=20, value=4, step=1)
-                producao_leguminosas = st.number_input("Produção de leguminosas (kg/mês)", min_value=0, value=50, step=10)
-            with col_prod2:
-                producao_hortalicas = st.number_input("Produção de hortícolas (kg/mês)", min_value=0, value=30, step=10)
-                producao_graos = st.number_input("Produção de grãos (kg/mês)", min_value=0, value=100, step=10)
-                producao_tubers = st.number_input("Produção de tubérculos (kg/mês)", min_value=0, value=80, step=10)
-                producao_frutas = st.number_input("Produção de frutas (kg/mês)", min_value=0, value=20, step=10)
+            # Estatísticas
+            col_p1, col_p2, col_p3 = st.columns(3)
+            with col_p1:
+                st.metric("Total de Pedidos", len(df_pedidos))
+            with col_p2:
+                pendentes = len(df_pedidos[df_pedidos['status'] == 'Pendente'])
+                st.metric("Pendentes", pendentes, delta="⚠️" if pendentes > 0 else "✅")
+            with col_p3:
+                respondidos = len(df_pedidos[df_pedidos['status'] == 'Respondido'])
+                st.metric("Respondidos", respondidos)
             
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.divider()
             
-            # ============ CRIAÇÃO ANIMAL ============
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">🐔 Criação Animal</div>', unsafe_allow_html=True)
+            # Mostrar pedidos pendentes primeiro
+            pendentes_df = df_pedidos[df_pedidos['status'] == 'Pendente']
             
-            col_anim1, col_anim2 = st.columns(2)
-            with col_anim1:
-                criacao_animal = st.text_area("Animais criados", placeholder="Ex: Galinhas, Cabras, Porcos")
-                ovos_semana = st.number_input("Ovos produzidos por semana", min_value=0, value=20, step=5)
-            with col_anim2:
-                leite_dia = st.number_input("Litros de leite por dia", min_value=0.0, value=0.0, step=0.5)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # ============ MERCADO E DISPONIBILIDADE ============
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">💰 Mercado e Disponibilidade</div>', unsafe_allow_html=True)
-            
-            col_merc1, col_merc2 = st.columns(2)
-            with col_merc1:
-                disponibilidade_alimentos = st.selectbox("Disponibilidade geral de alimentos", ["Alta", "Média", "Baixa", "Muito baixa"])
-                sazonalidade = st.selectbox("Sazonalidade de produção", ["Estável todo ano", "Duas estações", "Uma estação", "Muito variável"])
-            with col_merc2:
-                meses_escassez = st.text_input("Meses de maior escassez", placeholder="Ex: Jan-Mar, Out-Dez")
-                preco_feijao = st.number_input("Preço do feijão (MZN/kg)", min_value=0, value=80, step=5)
-                preco_milho = st.number_input("Preço do milho (MZN/kg)", min_value=0, value=50, step=5)
-                preco_arroz = st.number_input("Preço do arroz (MZN/kg)", min_value=0, value=70, step=5)
-                preco_oleo = st.number_input("Preço do óleo (MZN/litro)", min_value=0, value=120, step=5)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # ============ DADOS CLIMÁTICOS ============
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-title">🌦 Dados Climáticos</div>', unsafe_allow_html=True)
-            
-            col_clim1, col_clim2 = st.columns(2)
-            with col_clim1:
-                precipitacao = st.number_input("Precipitação anual (mm)", min_value=0, value=700, step=50)
-                temperatura = st.number_input("Temperatura média (°C)", min_value=0, value=28, step=1)
-            with col_clim2:
-                seca_frequencia = st.number_input("Frequência de secas (eventos/ano)", min_value=0, value=1, step=1)
-                cheias_frequencia = st.number_input("Frequência de cheias (eventos/ano)", min_value=0, value=0, step=1)
-                epoca_agricola = st.number_input("Duração da época agrícola (dias)", min_value=0, value=120, step=10)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # ============ BOTÃO SALVAR ============
-            salvar_agri = st.form_submit_button("💾 Salvar Dados Agroalimentares", use_container_width=True, type="primary")
-            
-            if salvar_agri:
-                st.session_state.agri_data = {
-                    'producao_agricola': producao_agricola,
-                    'diversidade_agricola': diversidade_agricola,
-                    'producao_leguminosas': producao_leguminosas,
-                    'producao_hortalicas': producao_hortalicas,
-                    'producao_graos': producao_graos,
-                    'producao_tubers': producao_tubers,
-                    'producao_frutas': producao_frutas,
-                    'criacao_animal': criacao_animal,
-                    'ovos_semana': ovos_semana,
-                    'leite_dia': leite_dia,
-                    'disponibilidade_alimentos': disponibilidade_alimentos,
-                    'sazonalidade': sazonalidade,
-                    'meses_escassez': meses_escassez,
-                    'preco_feijao': preco_feijao,
-                    'preco_milho': preco_milho,
-                    'preco_arroz': preco_arroz,
-                    'preco_oleo': preco_oleo,
-                    'precipitacao': precipitacao,
-                    'temperatura': temperatura,
-                    'seca_frequencia': seca_frequencia,
-                    'cheias_frequencia': cheias_frequencia,
-                    'epoca_agricola': epoca_agricola,
-                    'data_registo': datetime.now().strftime('%d/%m/%Y %H:%M')
-                }
-                st.success("✅ Dados agroalimentares registados com sucesso!")
-    
-    with tab3:
-        st.markdown('<div id="ver_lacunas"></div>', unsafe_allow_html=True)
-        st.header("🥗 Verificação de Lacunas Nutricionais")
-        st.markdown("Analise os casos encaminhados e identifique lacunas na produção alimentar")
-        
-        if 'patients' in st.session_state and st.session_state.patients:
-            df = pd.DataFrame(st.session_state.patients)
-            
-            casos_risco = df[(df['anemia_risco'].isin(['ALTO', 'MÉDIO'])) | 
-                            (df['nutrition_risco'].isin(['ALTO', 'MÉDIO']))]
-            
-            if casos_risco.empty:
-                st.success("✅ Nenhum caso com risco elevado no momento")
-            else:
-                st.warning(f"⚠️ {len(casos_risco)} casos necessitam de verificação agrícola")
+            if not pendentes_df.empty:
+                st.warning(f"⚠️ {len(pendentes_df)} pedidos aguardam resposta")
                 
-                for idx, row in casos_risco.iterrows():
-                    with st.expander(f"👶 {row['nome']} - {row['idade_meses']} meses - Risco: {row['anemia_risco']}"):
-                        col_l1, col_l2 = st.columns(2)
+                for idx, row in pendentes_df.iterrows():
+                    with st.expander(f"👶 {row['paciente']} - {row['idade']} meses - {row['data_pedido']}", expanded=True):
+                        st.markdown(f"""
+                        <div class="request-box">
+                            <strong>📋 Informações do Pedido:</strong>
+                            <ul>
+                                <li><strong>Paciente:</strong> {row['paciente']}</li>
+                                <li><strong>Idade:</strong> {row['idade']} meses</li>
+                                <li><strong>Risco de Anemia:</strong> {row['risco_anemia']}</li>
+                                <li><strong>Data do Pedido:</strong> {row['data_pedido']}</li>
+                            </ul>
+                        </div>
+                        """, unsafe_allow_html=True)
                         
-                        with col_l1:
+                        col_a1, col_a2 = st.columns(2)
+                        
+                        with col_a1:
                             st.markdown(f"""
-                            **Dados da Criança:**
-                            - **Idade:** {row['idade_meses']} meses
-                            - **DDS:** {row['diversidade_alimentar']}/9
-                            - **Consumo ferro:** {"Sim" if row['consumo_ferro'] else "Não"}
-                            - **Refeições/dia:** {row.get('refeicoes_dia', 'N/A')}
-                            - **Aleitamento:** {row.get('aleitamento', 'N/A')}
-                            - **Risco Anemia:** {row['anemia_risco']}
-                            - **Risco Fome Oculta:** {row['nutrition_risco']}
-                            - **Déficits:** {', '.join(row.get('deficits', ['Nenhum']))}
+                            **🌱 Produção Atual:**
+                            {row['culturas'] if row['culturas'] else 'Não informado'}
+                            
+                            **🐔 Animais:**
+                            {row['animais'] if row['animais'] else 'Não informado'}
                             """)
                         
-                        with col_l2:
+                        with col_a2:
                             st.markdown(f"""
-                            **Dados Socioeconómicos:**
-                            - **Escolaridade mãe:** {row.get('escolaridade_mae', 'N/A')}
-                            - **Tamanho família:** {row.get('tamanho_familia', 'N/A')}
-                            - **Renda:** {row.get('renda', 'N/A')}
-                            - **Água:** {row.get('agua', 'N/A')}
-                            - **Saneamento:** {row.get('sani', 'N/A')}
+                            **⚠️ Dificuldades:**
+                            {row['dificuldades'] if row['dificuldades'] else 'Nenhuma'}
+                            
+                            **📝 Observações:**
+                            {row['observacoes'] if row['observacoes'] else 'Nenhuma'}
                             """)
                         
-                        # Análise de lacuna
+                        # Recomendações do agrónomo
                         st.markdown("---")
-                        st.markdown("**🥗 Análise de Lacuna Nutricional:**")
+                        st.markdown("**🌱 Recomendação Agrícola:**")
                         
-                        lacunas = []
-                        if row['diversidade_alimentar'] < 4:
-                            lacunas.append("⚠️ Baixa diversidade alimentar")
-                        if row['consumo_ferro'] == 0:
-                            lacunas.append("⚠️ Défice de ferro")
-                        if row.get('refeicoes_dia', 0) < 3:
-                            lacunas.append("⚠️ Baixa frequência de refeições")
+                        recomendacao_agri = st.text_area(
+                            f"Recomendação para {row['paciente']}:",
+                            placeholder="Ex: Aumentar produção de feijão, introduzir hortícolas, melhorar criação de galinhas...",
+                            key=f"agri_rec_{idx}",
+                            height=80
+                        )
                         
-                        if lacunas:
-                            for l in lacunas:
-                                st.write(l)
-                            
-                            # Recomendações agrícolas específicas
-                            st.markdown("**🌱 Recomendações Agrícolas Sugeridas:**")
-                            
-                            recomendacoes = []
-                            if row['diversidade_alimentar'] < 4:
-                                recomendacoes.append("• Diversificar produção agrícola (mínimo 5 culturas)")
-                                recomendacoes.append("• Promover hortas familiares com variedade de vegetais")
-                            if row['consumo_ferro'] == 0:
-                                recomendacoes.append("• Aumentar produção de leguminosas (feijão, amendoim)")
-                                recomendacoes.append("• Promover cultivo de folhas verdes escuras (couve, espinafre)")
-                                recomendacoes.append("• Melhorar criação de galinhas para ovos")
-                            
-                            for r in recomendacoes:
-                                st.write(r)
-                            
-                            # Campo para recomendações do agrónomo
-                            recomendacao_agronomo = st.text_area(
-                                "Registe a sua recomendação agrícola para este caso:",
-                                placeholder="Ex: Distribuir sementes de feijão biofortificado para esta família...",
-                                key=f"rec_{idx}"
-                            )
-                            
-                            if st.button(f"✅ Registar Recomendação para {row['nome']}", key=f"btn_{idx}"):
-                                if recomendacao_agronomo:
-                                    # Atualizar paciente com recomendação
-                                    for p in st.session_state.patients:
-                                        if p['nome'] == row['nome']:
-                                            p['recomendacao_agricola'] = recomendacao_agronomo
-                                            p['status_agronomo'] = 'Analisado'
-                                            break
-                                    st.success(f"✅ Recomendação registada para {row['nome']}!")
+                        col_b1, col_b2 = st.columns(2)
+                        with col_b1:
+                            if st.button(f"✅ Enviar Recomendação", key=f"responder_{idx}", use_container_width=True):
+                                if recomendacao_agri:
+                                    st.session_state.agriculture_requests[idx]['status'] = 'Respondido'
+                                    st.session_state.agriculture_requests[idx]['recomendacao'] = recomendacao_agri
+                                    st.session_state.agriculture_requests[idx]['data_resposta'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+                                    st.success(f"✅ Recomendação enviada para {row['paciente']}!")
                                     st.rerun()
                                 else:
                                     st.warning("⚠️ Por favor, insira uma recomendação")
-                        else:
-                            st.success("✅ Nenhuma lacuna nutricional crítica identificada")
+                        
+                        with col_b2:
+                            if st.button(f"📋 Ver Dados do Paciente", key=f"ver_paciente_{idx}", use_container_width=True):
+                                st.info(f"👶 {row['paciente']} - Consulte o histórico na aba Dashboard")
+            else:
+                st.success("✅ Nenhum pedido pendente")
+            
+            # Mostrar pedidos respondidos
+            respondidos_df = df_pedidos[df_pedidos['status'] == 'Respondido']
+            
+            if not respondidos_df.empty:
+                with st.expander("📋 Pedidos Respondidos"):
+                    for idx, row in respondidos_df.iterrows():
+                        st.markdown(f"""
+                        <div class="request-box-responded">
+                            <strong>✅ {row['paciente']}</strong> - {row['data_resposta']}
+                            <br>
+                            <span class="badge badge-respondido">Respondido</span>
+                            <br><br>
+                            <strong>🌱 Recomendação:</strong> {row['recomendacao']}
+                        </div>
+                        """, unsafe_allow_html=True)
         else:
-            st.info("📋 Aguardando dados de triagem do enfermeiro")
+            st.info("📋 Nenhum pedido do médico recebido ainda")
+            st.markdown("""
+            <div style="background:#f5f5f5;border-radius:8px;padding:1.5rem;text-align:center;border:1px dashed #ccc;">
+                <span style="font-size:3rem;">📩</span>
+                <p style="margin:0.5rem 0;color:#666;">
+                    <strong>Aguardando pedidos</strong><br>
+                    Os pedidos do médico aparecerão aqui automaticamente
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown('<div id="lacunas"></div>', unsafe_allow_html=True)
+        st.header("🥗 Análise de Lacunas Nutricionais")
+        st.markdown("Identifique quais alimentos estão em falta na comunidade")
+        
+        if st.button("🔍 Analisar Lacunas Nutricionais", use_container_width=True):
+            with st.spinner("A IA está a analisar os dados da comunidade..."):
+                if 'patients' in st.session_state and st.session_state.patients:
+                    df = pd.DataFrame(st.session_state.patients)
+                    diversidade_media = df['diversidade_alimentar'].mean()
+                    consumo_ferro = df['consumo_ferro'].mean() if 'consumo_ferro' in df.columns else 0.5
+                    
+                    patient_data = {
+                        'diversidade_alimentar': diversidade_media,
+                        'consumo_ferro': 1 if consumo_ferro > 0.5 else 0,
+                        'consumo_vit_a': 0.5
+                    }
+                else:
+                    patient_data = {'diversidade_alimentar': 3, 'consumo_ferro': 0, 'consumo_vit_a': 0}
+                
+                community_data = {
+                    'producao_leguminosas': 8,
+                    'producao_hortalicas': 15,
+                    'diversidade_agricola': 4,
+                    'producao_total': 1000,
+                    'preco_alimentos': 50,
+                    'precipitacao': 650,
+                    'temperatura': 28,
+                    'seca_frequencia': 1,
+                    'duracao_epoca': 120
+                }
+                
+                resultado = rec_engine.generate_lacuna_analysis(patient_data, community_data)
+                
+                st.subheader("📊 Resultado da Análise")
+                
+                col_l1, col_l2 = st.columns(2)
+                
+                with col_l1:
+                    st.warning("⚠️ Lacunas Identificadas:")
+                    if resultado['lacunas_identificadas']:
+                        for lacuna in resultado['lacunas_identificadas']:
+                            st.write(f"• {lacuna}")
+                    else:
+                        st.write("✅ Nenhuma lacuna crítica identificada")
+                
+                with col_l2:
+                    st.success("🌱 Recomendações Agrícolas:")
+                    if resultado['recomendacoes_agricolas']:
+                        for rec in resultado['recomendacoes_agricolas']:
+                            st.write(f"• {rec}")
+                    else:
+                        st.write("✅ Manter produção atual")
+                
+                st.metric(
+                    "Nível de Prioridade",
+                    resultado['nivel_prioridade'],
+                    "Ação imediata necessária" if resultado['nivel_prioridade'] == 'ALTO' else "Planeamento a médio prazo"
+                )
     
     with tab4:
         st.markdown('<div id="recomendacoes"></div>', unsafe_allow_html=True)
@@ -356,34 +316,24 @@ def render_agronomo():
         
         if st.button("🔄 Gerar Recomendações Integradas", use_container_width=True, type="primary"):
             with st.spinner("A IA está a analisar os dados integrados..."):
-                # Análise de dados dos pacientes
                 if 'patients' in st.session_state and st.session_state.patients:
                     df = pd.DataFrame(st.session_state.patients)
                     
-                    # Estatísticas
                     total = len(df)
                     risco_alto = len(df[df['anemia_risco'] == 'ALTO'])
-                    risco_medio = len(df[df['anemia_risco'] == 'MÉDIO'])
                     baixa_diversidade = len(df[df['diversidade_alimentar'] < 4])
-                    consumo_ferro = len(df[df['consumo_ferro'] == 1])
                     media_dds = df['diversidade_alimentar'].mean()
                     
-                    # Dados agrícolas
-                    agri = st.session_state.agri_data
-                    
-                    # Gerar recomendações
                     recomendacoes = []
                     
-                    # 1. Recomendações baseadas em risco de anemia
                     if risco_alto > total * 0.3:
                         recomendacoes.append({
                             'prioridade': 'ALTA',
                             'categoria': '🍖 Combate à Anemia',
-                            'acao': 'Distribuir sementes de feijão e amendoim biofortificados para todas as famílias com crianças em risco',
+                            'acao': 'Distribuir sementes de feijão e amendoim biofortificados para famílias com crianças em risco',
                             'prazo': 'Imediato'
                         })
                     
-                    # 2. Recomendações baseadas em diversidade alimentar
                     if baixa_diversidade > total * 0.4:
                         recomendacoes.append({
                             'prioridade': 'ALTA',
@@ -392,42 +342,6 @@ def render_agronomo():
                             'prazo': 'Curto prazo (1-2 meses)'
                         })
                     
-                    # 3. Recomendações baseadas em produção agrícola
-                    if agri['producao_leguminosas'] < 50:
-                        recomendacoes.append({
-                            'prioridade': 'MÉDIA',
-                            'categoria': '🌱 Produção de Leguminosas',
-                            'acao': 'Aumentar produção de leguminosas (feijão, amendoim) em 50%',
-                            'prazo': 'Médio prazo (3-6 meses)'
-                        })
-                    
-                    if agri['producao_hortalicas'] < 30:
-                        recomendacoes.append({
-                            'prioridade': 'MÉDIA',
-                            'categoria': '🥗 Produção de Hortícolas',
-                            'acao': 'Expandir produção de hortícolas (couve, espinafre, cenoura)',
-                            'prazo': 'Médio prazo (3-6 meses)'
-                        })
-                    
-                    # 4. Recomendações baseadas em clima
-                    if agri['seca_frequencia'] > 1:
-                        recomendacoes.append({
-                            'prioridade': 'MÉDIA',
-                            'categoria': '🌦 Resiliência Climática',
-                            'acao': 'Introduzir culturas tolerantes à seca (mandioca, sorgo, batata-doce)',
-                            'prazo': 'Médio prazo (3-6 meses)'
-                        })
-                    
-                    # 5. Recomendações baseadas em criação animal
-                    if agri['ovos_semana'] < 20:
-                        recomendacoes.append({
-                            'prioridade': 'BAIXA',
-                            'categoria': '🐔 Produção Animal',
-                            'acao': 'Melhorar criação de galinhas para produção de ovos (mínimo 30 ovos/semana)',
-                            'prazo': 'Longo prazo (6-12 meses)'
-                        })
-                    
-                    # 6. Recomendação geral
                     if media_dds < 4:
                         recomendacoes.append({
                             'prioridade': 'ALTA',
@@ -436,7 +350,14 @@ def render_agronomo():
                             'prazo': 'Imediato'
                         })
                     
-                    # Mostrar recomendações
+                    if not recomendacoes:
+                        recomendacoes.append({
+                            'prioridade': 'BAIXA',
+                            'categoria': '✅ Manutenção',
+                            'acao': 'Manter as práticas agrícolas atuais, continuar monitorizando',
+                            'prazo': 'Contínuo'
+                        })
+                    
                     st.subheader("📋 Recomendações Geradas")
                     
                     for rec in recomendacoes:
@@ -456,18 +377,5 @@ def render_agronomo():
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
-                    
-                    # Sumário executivo
-                    st.markdown("---")
-                    st.subheader("📊 Sumário Executivo")
-                    
-                    col_s1, col_s2, col_s3 = st.columns(3)
-                    with col_s1:
-                        st.metric("Prioridade ALTA", len([r for r in recomendacoes if r['prioridade'] == 'ALTA']))
-                    with col_s2:
-                        st.metric("Prioridade MÉDIA", len([r for r in recomendacoes if r['prioridade'] == 'MÉDIA']))
-                    with col_s3:
-                        st.metric("Prioridade BAIXA", len([r for r in recomendacoes if r['prioridade'] == 'BAIXA']))
-                    
                 else:
                     st.warning("⚠️ Sem dados de pacientes para análise. Aguarde as triagens do enfermeiro.")
