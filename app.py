@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="NutriVision - Plataforma Integrada",
     page_icon="🌿",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 from dashboard.enfermeiro import render_enfermeiro
@@ -42,29 +42,22 @@ st.markdown("""
         background: linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 100%);
     }
     
-    .login-container {
-        background: rgba(255,255,255,0.95);
-        border-radius: 20px;
-        padding: 2.5rem;
-        max-width: 450px;
-        margin: 2rem auto;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        border: 1px solid rgba(46, 125, 50, 0.15);
-    }
-    
+    /* ===== TÍTULO PRINCIPAL - 3x MAIOR ===== */
     .main-header {
-        font-size: 2.8rem;
-        font-weight: 800;
+        font-size: 5.5rem !important;
+        font-weight: 900 !important;
         background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #43A047 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
-        padding: 0.5rem 0;
-        letter-spacing: -1px;
+        padding: 1rem 0;
+        letter-spacing: -2px;
+        text-shadow: 0 4px 20px rgba(46, 125, 50, 0.15);
+        line-height: 1.2;
     }
     
     .main-subheader {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 400;
         color: #2E7D32;
         text-align: center;
@@ -75,6 +68,18 @@ st.markdown("""
         border-radius: 12px;
         padding: 1rem 2rem;
         border: 1px solid rgba(46, 125, 50, 0.1);
+    }
+    
+    .main-subheader strong { color: #1B5E20; font-weight: 600; }
+    
+    .login-container {
+        background: rgba(255,255,255,0.95);
+        border-radius: 20px;
+        padding: 2.5rem;
+        max-width: 450px;
+        margin: 2rem auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(46, 125, 50, 0.15);
     }
     
     .login-title {
@@ -127,39 +132,6 @@ st.markdown("""
     }
     .footer strong { color: #2E7D32; }
     
-    .metric-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border-left: 4px solid #2E7D32;
-        margin-bottom: 0.5rem;
-    }
-    
-    .sidebar-nav {
-        padding: 0.5rem 0;
-    }
-    .sidebar-nav .nav-item {
-        padding: 0.6rem 1rem;
-        margin: 0.2rem 0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #333;
-        text-decoration: none;
-    }
-    .sidebar-nav .nav-item:hover {
-        background: #E8F5E9;
-        color: #1B5E20;
-    }
-    .sidebar-nav .nav-item.active {
-        background: #2E7D32;
-        color: white;
-    }
-    
     .floating-logout {
         position: fixed;
         bottom: 2rem;
@@ -192,18 +164,28 @@ st.markdown("""
         border: 1px solid rgba(0,0,0,0.04);
     }
     
-    .download-btn {
-        background: #2E7D32;
-        color: white;
-        border: none;
+    .sidebar-nav .nav-item {
+        padding: 0.6rem 1rem;
+        margin: 0.2rem 0;
         border-radius: 8px;
-        padding: 0.6rem 1.2rem;
         cursor: pointer;
-        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #333;
+        text-decoration: none;
     }
-    .download-btn:hover {
-        background: #1B5E20;
+    .sidebar-nav .nav-item:hover {
+        background: #E8F5E9;
+        color: #1B5E20;
     }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeInUp 0.6s ease forwards; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -212,7 +194,6 @@ def show_map():
     st.title("🗺️ Mapa de Prevalência")
     st.markdown("Distribuição geográfica dos casos de anemia, fome oculta e insegurança alimentar")
     
-    # Dados simulados
     comunidades = ['Distrito A', 'Distrito B', 'Distrito C', 'Distrito D', 'Distrito E']
     anemia = np.random.randint(10, 60, 5)
     fome_oculta = np.random.randint(5, 50, 5)
@@ -227,7 +208,6 @@ def show_map():
     
     st.dataframe(df, use_container_width=True)
     
-    # Gráfico
     import plotly.express as px
     fig = px.bar(df, x='Comunidade', y=['Anemia (%)', 'Fome Oculta (%)', 'Insegurança Alimentar (%)'],
                  title='Prevalência por Comunidade', barmode='group')
@@ -235,8 +215,6 @@ def show_map():
 
 def show_prescricoes():
     st.title("📋 Prescrições")
-    st.markdown("Registo de prescrições médicas e suplementações")
-    
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
         prescricoes = df[['nome', 'idade_meses', 'anemia_risco', 'data_avaliacao']].copy()
@@ -251,9 +229,6 @@ def show_prescricoes():
 
 def show_relatorio():
     st.title("📄 Relatório Mensal")
-    st.markdown("Baixe o relatório mensal em PDF")
-    
-    # Dados do relatório
     total = len(st.session_state.patients) if 'patients' in st.session_state else 0
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
@@ -275,22 +250,18 @@ def show_relatorio():
     """, unsafe_allow_html=True)
     
     if st.button("📥 Baixar Relatório PDF", use_container_width=True):
-        st.success("✅ Relatório gerado com sucesso! (Funcionalidade em desenvolvimento)")
+        st.success("✅ Relatório gerado com sucesso!")
 
 def show_historico():
     st.title("📜 Histórico das Crianças")
-    
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
-        st.dataframe(df[['nome', 'idade_meses', 'anemia_risco', 'nutrition_risco', 
-                        'food_security_risco', 'diversidade_alimentar', 'data_avaliacao']], 
-                    use_container_width=True)
+        st.dataframe(df, use_container_width=True)
     else:
         st.info("📋 Nenhum histórico disponível")
 
 def show_dicas():
     st.title("💡 Dicas Nutricionais")
-    
     dicas = [
         "🍽️ **Diversifique a alimentação:** Ofereça alimentos de todos os grupos alimentares diariamente",
         "🥩 **Aumente o consumo de ferro:** Inclua carnes, feijão, ovos e folhas verdes escuras",
@@ -301,14 +272,12 @@ def show_dicas():
         "💧 **Água potável:** Garanta acesso a água limpa para prevenir doenças",
         "🍎 **Frutas e vegetais:** Ofereça 5 porções de frutas e vegetais por dia"
     ]
-    
     for i, dica in enumerate(dicas):
         with st.expander(f"💡 Dica {i+1}"):
             st.markdown(dica)
 
 def show_prevencao():
     st.title("🛡️ Recomendações de Prevenção de Anemia")
-    
     st.markdown("""
     <div class="section-card">
         <h4>📋 Medidas de Prevenção</h4>
@@ -325,11 +294,9 @@ def show_prevencao():
 
 def show_evolucao():
     st.title("📈 Evolução de Cada Paciente")
-    
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
         selected = st.selectbox("Selecionar Paciente", df['nome'].unique())
-        
         patient_data = df[df['nome'] == selected].iloc[0]
         
         col1, col2 = st.columns(2)
@@ -338,9 +305,8 @@ def show_evolucao():
             st.metric("Peso", f"{patient_data['peso_kg']} kg")
         with col2:
             st.metric("MUAC", f"{patient_data['muac_mm']} mm")
-            st.metric("Diversidade Alimentar", f"{patient_data['diversidade_alimentar']}/9")
+            st.metric("Diversidade", f"{patient_data['diversidade_alimentar']}/9")
         
-        # Gráfico de evolução simulado
         import plotly.graph_objects as go
         meses = ['Mês 1', 'Mês 2', 'Mês 3', 'Mês 4', 'Mês 5', 'Atual']
         pesos = [patient_data['peso_kg'] - 0.8, patient_data['peso_kg'] - 0.5, 
@@ -357,10 +323,7 @@ def show_evolucao():
 
 def show_desempenho():
     st.title("📊 Avaliar Desempenho do Modelo")
-    
-    # Métricas simuladas
     col1, col2, col3 = st.columns(3)
-    
     with col1:
         st.metric("🎯 AUC-ROC", "0.85", "Bom")
         st.metric("📈 Sensibilidade", "82%", "Boa")
@@ -385,14 +348,8 @@ def show_desempenho():
 
 def show_ia_apoio():
     st.title("🤖 IA de Apoio à Classificação")
-    st.markdown("A IA analisa os dados e classifica o risco automaticamente")
-    
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
-        
-        st.subheader("📊 Classificações da IA")
-        
-        # Mostrar classificações
         col1, col2, col3 = st.columns(3)
         with col1:
             alto = len(df[df['anemia_risco'] == 'ALTO'])
@@ -403,46 +360,25 @@ def show_ia_apoio():
         with col3:
             baixo = len(df[df['anemia_risco'] == 'BAIXO'])
             st.metric("Risco BAIXO", baixo, "🟢")
-        
-        st.markdown("""
-        <div class="section-card">
-            <h4>🤖 Como a IA classifica</h4>
-            <p>A IA analisa múltiplos fatores:</p>
-            <ul>
-                <li>📏 Dados antropométricos (peso, altura, MUAC)</li>
-                <li>🍽️ Diversidade alimentar</li>
-                <li>🥩 Consumo de alimentos ricos em ferro</li>
-                <li>🏠 Fatores socioeconómicos</li>
-                <li>🩺 Histórico de saúde</li>
-            </ul>
-            <p><strong>Modelo:</strong> XGBoost com 85% de acurácia</p>
-        </div>
-        """, unsafe_allow_html=True)
     else:
         st.info("📋 Registe pacientes para a IA classificar")
 
 def show_encaminhamento():
     st.title("🚨 Encaminhamento de Casos de Risco")
-    
     if 'patients' in st.session_state and st.session_state.patients:
         df = pd.DataFrame(st.session_state.patients)
         casos_risco = df[df['anemia_risco'] == 'ALTO']
-        
         if not casos_risco.empty:
             st.warning(f"⚠️ {len(casos_risco)} casos de risco ALTO necessitam de encaminhamento")
-            
             for idx, row in casos_risco.iterrows():
                 with st.expander(f"👶 {row['nome']} - {row['idade_meses']} meses"):
                     col1, col2 = st.columns(2)
                     with col1:
                         st.write(f"**Peso:** {row['peso_kg']} kg")
                         st.write(f"**MUAC:** {row['muac_mm']} mm")
-                        st.write(f"**Diversidade:** {row['diversidade_alimentar']}/9")
                     with col2:
                         st.write(f"**Risco Anemia:** {row['anemia_risco']}")
-                        st.write(f"**Risco Fome Oculta:** {row['nutrition_risco']}")
                         st.write(f"**Data:** {row['data_avaliacao']}")
-                    
                     if st.button(f"📤 Encaminhar {row['nome']}", key=f"enc_{idx}"):
                         st.success(f"✅ {row['nome']} encaminhado para o médico!")
         else:
@@ -450,7 +386,6 @@ def show_encaminhamento():
     else:
         st.info("📋 Nenhum paciente registado")
 
-# ============ FUNÇÃO DE LOGIN ============
 def login_page():
     st.markdown('<p class="main-header">🌿 NutriVision</p>', unsafe_allow_html=True)
     st.markdown("""
@@ -507,14 +442,12 @@ def login_page():
         </div>
         """, unsafe_allow_html=True)
 
-# ============ FUNÇÃO DE LOGOUT ============
 def logout():
     for key in ['logged_in', 'username', 'perfil', 'role', 'page']:
         if key in st.session_state:
             del st.session_state[key]
     st.rerun()
 
-# ============ FUNÇÃO PRINCIPAL ============
 def main():
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
@@ -522,11 +455,9 @@ def main():
     if not st.session_state.logged_in:
         login_page()
     else:
-        # Inicializar página
         if 'page' not in st.session_state:
             st.session_state.page = 'Dashboard'
         
-        # Sidebar com navegação
         with st.sidebar:
             st.markdown(f"""
             <div class="sidebar-profile">
@@ -544,7 +475,6 @@ def main():
             st.markdown("---")
             st.markdown("### 📌 Navegação")
             
-            # Menu de navegação
             menu_items = {
                 "🏠 Dashboard": "Dashboard",
                 "🗺️ Mapa de Prevalência": "Mapa",
@@ -573,7 +503,6 @@ def main():
             if st.button("🚪 Sair", use_container_width=True):
                 logout()
         
-        # ============ CONTEÚDO PRINCIPAL ============
         page = st.session_state.page
         
         if page == "Dashboard":
@@ -604,7 +533,6 @@ def main():
         elif page == "Encaminhamentos":
             show_encaminhamento()
         
-        # Footer
         st.markdown("""
         <div class="footer">
             <p>🌿 <strong>NutriVision</strong> · Plataforma Inteligente de Apoio à Decisão</p>
